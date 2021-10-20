@@ -156,12 +156,13 @@ function add_employee() {
         value: data[i].roles_id,
         deptID: data[i].department_ID,
         salary: data[i].salary,
+
       };
 
       roles.push(rolesObj);
     }
 
-    console.log(rolesObj);
+    // console.log(rolesObj);
 
     connection.query(`SELECT * FROM employee`, function (err, data) {
       if (err) throw err;
@@ -172,6 +173,7 @@ function add_employee() {
           last_name: data[i].lName,
           value: data[i].emp_id,
           roleID: data[i].role_id,
+          emp: data[i].manager
         };
         employees.push(personObj);
         console.log(personObj);
@@ -197,11 +199,18 @@ function add_employee() {
             type: "list",
             choices: roles,
           },
+
+          {
+            name: "manager",
+            message: "What is their role?",
+            type: "list",
+            choices: ["Yes", "No"],
+          },
         ])
 
-        .then(function ({ fName, lName, roleID }) {
+        .then(function ({ fName, lName, roleID, manager }) {
           connection.query(
-            `INSERT INTO employee (fName, lName, role_id) VALUES ('${fName}', '${lName}', '${roleID}')`,
+            `INSERT INTO employee (fName, lName, role_id, manager) VALUES ('${fName}', '${lName}', '${roleID}', '${manager}')`,
             function (err, data) {
               if (err) throw err;
               console.log(`Added`);
@@ -296,7 +305,8 @@ function updateRole() {
         ])
         .then(function ({ employee_id, role_id }) {
           connection.query(
-            `UPDATE employee SET role_id = ${"role_id"}`,
+            `UPDATE employee SET role_id = '${role_id}'
+            WHERE emp_id = '${employee_id}'`,
             function (err, data) {
               if (err) throw err;
 
