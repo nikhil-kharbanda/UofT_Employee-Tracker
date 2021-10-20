@@ -16,13 +16,12 @@ connection.connect(function (err) {
     console.error("error connecting: " + err.stack);
     return;
   }
-
-  console.log("Connected to db as id " + connection.threadId);
 });
 
 /* Start */
 getTask();
 
+/* Main task to repeat */
 function getTask() {
   inquirer
     .prompt({
@@ -43,12 +42,14 @@ function getTask() {
           update();
           break;
         case "EXIT":
+          exit();
           connection.end();
           break;
       }
     });
 }
 
+/* Select what to add (ie. Dept, Role, Employee) */
 function add() {
   inquirer
     .prompt({
@@ -66,7 +67,7 @@ function add() {
           add_role();
           break;
         case "Employee":
-          add_employee;
+          //add_employee;
           break;
       }
     });
@@ -81,10 +82,10 @@ function add_dept() {
     })
     .then(function ({ deptName }) {
       connection.query(
-        `INSERT INTO department (name) VALUES ('${deptName})`,
+        `INSERT INTO department (name) VALUES ('${deptName}')`,
         function (err, data) {
           if (err) throw err;
-          console.log("added");
+          console.log("Added department");
           getTask();
         }
       );
@@ -94,53 +95,73 @@ function add_dept() {
 function add_role() {
   let depts = [];
 
-  connection.query(`SELECT * FROM department`, function (err, data) {
+  connection.query(`SELECT * from department`, function (err, data) {
     if (err) throw err;
 
     for (let i = 0; i < data.length; i++) {
       depts.push(data[i].name);
     }
 
-    inquirer.prompt([
-      {
-        name: "roleName",
-        type: "input",
-        message: "What is the name of the role?",
-      },
+    inquirer
+      .prompt([
+        {
+          name: "roleName",
+          type: "input",
+          message: "What is the roles name?",
+        },
 
-      {
-        name: "deptID",
-        type: "list",
-        message: "What department does this role belong to",
-        choices: depts,
-      },
+        {
+          name: "deptName",
+          type: "list",
+          message: "What department does this role belong to?",
+          choices: depts,
+        },
 
-      {
-        name: "roleSal",
-        type: "input",
-        message: "What is this roles salary",
-      }
-    ])
-    
-    .then(function ({roleName, deptID, roleSal}){
-        let index = depts.indexOf(deptID);
+        {
+          name: "roleSal",
+          type: "input",
+          message: "How much does this person make?",
+        },
+      ])
+      .then(function ({ roleName, deptName, roleSal }) {
+        let index = depts.indexOf(deptName);
 
         connection.query(
-            `INSERT INTO roles (title, salary, department_ID) VALUES ('${roleName}', '${roleSal}', ${index})`,
-            function(err, data){
-                if(err) throw err;
-                console.log("Added Role");
-                getTask();
-            }
+          `INSERT INTO roles(title, department_ID, salary) VALUES ('${roleName}', '${index}', '${roleSal}' )`,
+          function (err, data) {
+            if (err) throw err;
+            console.log(`Added`);
+            getJob();
+          }
         );
-    });
+      });
   });
 }
 
 function add_employee() {}
 
-function view() {}
+function view() {
+    inquirer.prompt({
+        name: "view",
+        type: "list",
+        message: "What would you like to see?",
+        choices: ["department", "roles", "employee"]
+    })
+    .then (function ( {view} ) {
+        connection.query(`SELECT * FROM ${view}`, function (err, data) {
+            if(err) throw err;
+
+            console.table(data);
+            getTask();
+        });
+    });
+}
 
 function update() {}
 
-function exit() {}
+function exit() {
+  connection.query(`DELETE FROM department`, function (err, data) {
+    if (err) throw err;
+    console.log("Cleared dept table");
+  });
+}
