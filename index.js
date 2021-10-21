@@ -18,6 +18,8 @@ connection.connect(function (err) {
   }
 });
 
+let salaryCost = 0;
+
 /* Start */
 getTask();
 
@@ -28,7 +30,7 @@ function getTask() {
       name: "task",
       type: "list",
       message: "Which task would you like to do?",
-      choices: ["ADD", "VIEW", "UPDATE", "EXIT"],
+      choices: ["ADD", "VIEW", "UPDATE", "DELETE", "EXIT"],
     })
     .then(function ({ task }) {
       switch (task) {
@@ -40,6 +42,9 @@ function getTask() {
           break;
         case "UPDATE":
           update();
+          break;
+        case "DELETE":
+          deleteItem();
           break;
         case "EXIT":
           exit();
@@ -107,8 +112,6 @@ function add_role() {
       depts.push(deptsObj);
     }
 
-    // console.log(deptsObj);
-
     inquirer
       .prompt([
         {
@@ -161,8 +164,6 @@ function add_employee() {
       roles.push(rolesObj);
     }
 
-    // console.log(rolesObj);
-
     connection.query(`SELECT * FROM employee`, function (err, data) {
       if (err) throw err;
 
@@ -174,8 +175,10 @@ function add_employee() {
           roleID: data[i].role_id,
           manager: data[i].manager,
         };
-        employees.push(personObj);
-        console.log(personObj);
+        employees.push({
+          name: personObj.first_name,
+          roleID: personObj.roleID,
+        });
       }
 
       inquirer
@@ -201,9 +204,9 @@ function add_employee() {
 
           {
             name: "manager",
-            message: "Are they a manager",
+            message: "Who is their manager",
             type: "list",
-            choices: ["yes", "no"],
+            choices: ["none"].concat(employees),
           },
         ])
 
@@ -336,14 +339,175 @@ function updateManager() {
       employeesFNames.push({ name: employeeObj.fName, value: employeeObj.id });
     }
 
+    // console.log(employeesFNames);
+
+    inquirer
+      .prompt([
+        {
+          name: "employee_id",
+          type: "list",
+          message: "Who would you like to update?",
+          choices: employeesFNames,
+        },
+        {
+          name: "manager",
+          type: "list",
+          message: "Who's their new manager",
+          choices: ["none"].concat(employeesFNames),
+        },
+      ])
+
+      .then(({ employee_id, manager }) => {
+        connection.query(
+          `UPDATE employee SET manager =  ${manager} WHERE emp_id = ${employee_id}`,
+          function (err, data) {
+            if (err) throw err;
+
+            getTask();
+          }
+        );
+      });
+  });
+}
+
+function deleteItem() {
+  inquirer
+    .prompt([
+      {
+        name: "select",
+        type: "list",
+        message: "Select which you would like to remove",
+        choices: ["department", "roles", "employee"],
+      },
+    ])
+    .then(function ({ select }) {
+      switch (select) {
+        case "department":
+          removeDept();
+          break;
+        case "roles":
+          removeRole();
+          break;
+        case "employee":
+          removeEmp();
+          break;
+      }
+    });
+}
+
+function removeDept() {
+  let depts = [];
+
+  connection.query(`SELECT * from department`, function (err, data) {
+    if (err) throw err;
+
+    for (let i = 0; i < data.length; i++) {
+      var deptsObj = {
+        name: data[i].name,
+        value: data[i].dept_id,
+      };
+
+      depts.push({ name: deptsObj.name, value: deptsObj.value });
+    }
+
+    inquirer
+      .prompt([
+        {
+          name: "dept_name",
+          type: "list",
+          message: "Which dept would you like to remove?",
+          choices: depts,
+        },
+      ])
+      .then(function ({ dept_name }) {
+        connection.query(
+          `DELETE FROM department WHERE dept_id = ${dept_name}`,
+          function (err, data) {
+            if (err) throw err;
+            console.log("Removed");
+            getTask();
+          }
+        );
+      });
+  });
+}
+
+function removeRole() {
+  let roles = [];
+
+  connection.query(`SELECT * FROM roles`, function (err, data) {
+    if (err) throw err;
+
+    for (let i = 0; i < data.length; i++) {
+      var rolesObj = {
+        title: data[i].title,
+        deptID: data[i].department_id,
+        salary: data[i].salary,
+        roles_ID: data[i].roles_id,
+      };
+      roles.push({ name: rolesObj.title, value: rolesObj.roles_ID });
+    }
+
+    inquirer
+      .prompt([
+        {
+          name: "role_name",
+          type: "list",
+          message: "Which role would you like to remove?",
+          choices: roles,
+        },
+      ])
+      .then(function ({ role_name }) {
+        connection.query(
+          `DELETE FROM roles WHERE roles_id = ${role_name}`,
+          function (err, data) {
+            if (err) throw err;
+            console.log("Removed");
+            getTask();
+          }
+        );
+      });
+  });
+}
+
+function removeEmp() {
+  let employees = [];
+
+  connection.query(`SELECT * FROM employee`, function (err, data) {
+    if (err) throw err;
+
+    for (let i = 0; i < data.length; i++) {
+      var personObj = {
+        first_name: data[i].fName,
+        last_name: data[i].lName,
+        value: data[i].emp_id,
+        roleID: data[i].role_id,
+        manager: data[i].manager,
+      };
+      employees.push({
+        name: personObj.first_name,
+        roleID: personObj.roleID,
+      });
+    }
+
     inquirer.prompt([
       {
-        name: "employee_id",
+        name: "emp_name",
         type: "list",
-        message: "Who would you like to update?",
+        message: "Who would you like to remove?",
         choices: employees,
       },
-    ]);
+    ])
+    .then(function ({ emp_name }) {
+        connection.query(
+          `DELETE FROM employee WHERE emp_id = ${emp_name}`,
+          function (err, data) {
+            if (err) throw err;
+            console.log("Removed");
+            getTask();
+          }
+        );
+      });
   });
 }
 
