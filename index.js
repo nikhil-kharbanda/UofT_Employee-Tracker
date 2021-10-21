@@ -132,7 +132,7 @@ function add_role() {
       ])
       .then(function ({ roleName, deptName, roleSal }) {
         connection.query(
-          `INSERT INTO roles (title, department_ID, salary) VALUES ('${roleName}', '${deptName}', '${roleSal}' )`,
+          `INSERT INTO roles (title, department_id, salary) VALUES ('${roleName}', '${deptName}', '${roleSal}' )`,
           function (err, data) {
             if (err) throw err;
             console.log(`Added`);
@@ -154,9 +154,8 @@ function add_employee() {
       var rolesObj = {
         name: data[i].title,
         value: data[i].roles_id,
-        deptID: data[i].department_ID,
+        deptID: data[i].department_id,
         salary: data[i].salary,
-
       };
 
       roles.push(rolesObj);
@@ -173,7 +172,7 @@ function add_employee() {
           last_name: data[i].lName,
           value: data[i].emp_id,
           roleID: data[i].role_id,
-          emp: data[i].manager
+          manager: data[i].manager,
         };
         employees.push(personObj);
         console.log(personObj);
@@ -202,9 +201,9 @@ function add_employee() {
 
           {
             name: "manager",
-            message: "What is their role?",
+            message: "Are they a manager",
             type: "list",
-            choices: ["Yes", "No"],
+            choices: ["yes", "no"],
           },
         ])
 
@@ -263,17 +262,19 @@ function update() {
 function updateRole() {
   connection.query(`SELECT * FROM employee`, function (err, data) {
     if (err) throw err;
-    let employees = [];
+
+    let employeesFNames = [];
     let roles = [];
 
     for (let i = 0; i < data.length; i++) {
-      // employees.push(data[i].fName);
       var employeeObj = {
+        id: data[i].emp_id,
         fName: data[i].fName,
         lName: data[i].lName,
         role_id: data[i].role_id,
+        manager: data[i].manager,
       };
-      employees.push(employeeObj.fName);
+      employeesFNames.push({ name: employeeObj.fName, value: employeeObj.id });
     }
 
     connection.query(`SELECT * FROM roles`, function (err, data) {
@@ -282,10 +283,11 @@ function updateRole() {
       for (let i = 0; i < data.length; i++) {
         var rolesObj = {
           title: data[i].title,
-          deptID: data[i].department_ID,
+          deptID: data[i].department_id,
           salary: data[i].salary,
+          roles_ID: data[i].roles_id,
         };
-        roles.push(rolesObj.title);
+        roles.push({ name: rolesObj.title, value: rolesObj.roles_ID });
       }
 
       inquirer
@@ -294,7 +296,7 @@ function updateRole() {
             name: "employee_id",
             message: "Who's role needs to be updated",
             type: "list",
-            choices: employees,
+            choices: employeesFNames,
           },
           {
             name: "role_id",
@@ -305,8 +307,7 @@ function updateRole() {
         ])
         .then(function ({ employee_id, role_id }) {
           connection.query(
-            `UPDATE employee SET role_id = '${role_id}'
-            WHERE emp_id = '${employee_id}'`,
+            `UPDATE employee SET role_id = ${role_id} WHERE emp_id = ${employee_id}`,
             function (err, data) {
               if (err) throw err;
 
@@ -318,7 +319,33 @@ function updateRole() {
   });
 }
 
-function updateManager() {}
+function updateManager() {
+  connection.query(`SELECT * FROM employee`, function (err, data) {
+    if (err) throw err;
+
+    let employeesFNames = [];
+
+    for (let i = 0; i < data.length; i++) {
+      var employeeObj = {
+        id: data[i].emp_id,
+        fName: data[i].fName,
+        lName: data[i].lName,
+        role_id: data[i].role_id,
+        manager: data[i].manager,
+      };
+      employeesFNames.push({ name: employeeObj.fName, value: employeeObj.id });
+    }
+
+    inquirer.prompt([
+      {
+        name: "employee_id",
+        type: "list",
+        message: "Who would you like to update?",
+        choices: employees,
+      },
+    ]);
+  });
+}
 
 function exit() {
   deleteEmp();
