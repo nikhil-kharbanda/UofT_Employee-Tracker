@@ -233,48 +233,56 @@ function view() {
       choices: ["department", "roles", "employee"],
     })
 
-    .then(function ({view}){
-        switch(view){
-            case "department":
-                viewDept();
-                break;
-            case "roles":
-                viewRoles();
-                break;
-            case "employee":
-                viewEmp();
-                break;
-        }
-    })
-}
-
-function viewDept(){
-    connection.query(`SELECT dept_id, dept_name FROM department`, function(err, data){
-        if(err) throw err;
-
-        console.table(data);
-        getTask();
+    .then(function ({ view }) {
+      switch (view) {
+        case "department":
+          viewDept();
+          break;
+        case "roles":
+          viewRoles();
+          break;
+        case "employee":
+          viewEmp();
+          break;
+      }
     });
 }
 
-function viewRoles(){
-    connection.query('SELECT roles.roles_id, roles.title, department.dept_name, roles.salary FROM roles INNER JOIN department ON roles.department_id = department.dept_id', function (err, data){
-        if(err) throw err;
+function viewDept() {
+  connection.query(
+    `SELECT dept_id, dept_name FROM department`,
+    function (err, data) {
+      if (err) throw err;
 
-        console.table(data);
-
-        getTask();
-    });    
+      console.table(data);
+      getTask();
+    }
+  );
 }
 
-function viewEmp(){
-    connection.query(`SELECT employee.emp_id, employee.fName, employee.lName, roles.salary, roles.title, department.dept_name FROM employee LEFT JOIN roles ON role_id = roles.roles_id LEFT JOIN department ON department.dept_id = roles.department_id`,
-    function (err, data){
-        if(err) throw err;
+function viewRoles() {
+  connection.query(
+    "SELECT roles.roles_id, roles.title, department.dept_name, roles.salary FROM roles INNER JOIN department ON roles.department_id = department.dept_id",
+    function (err, data) {
+      if (err) throw err;
 
-        console.table(data);
-        getTask();
-    })
+      console.table(data);
+
+      getTask();
+    }
+  );
+}
+
+function viewEmp() {
+  connection.query(
+    `SELECT employee.emp_id, employee.fName, employee.lName, roles.title, department.dept_name, roles.salary, employee.manager FROM employee LEFT JOIN roles ON role_id = roles.roles_id LEFT JOIN department ON department.dept_id = roles.department_id`,
+    function (err, data) {
+      if (err) throw err;
+
+      console.table(data);
+      getTask();
+    }
+  );
 }
 
 function update() {
@@ -357,7 +365,7 @@ function updateRole() {
   });
 }
 
-function updateManager() {
+/*function updateManager() {
   connection.query(`SELECT * FROM employee`, function (err, data) {
     if (err) throw err;
 
@@ -373,8 +381,6 @@ function updateManager() {
       };
       employeesFNames.push({ name: employeeObj.fName, value: employeeObj.id });
     }
-
-    // console.log(employeesFNames);
 
     inquirer
       .prompt([
@@ -393,16 +399,62 @@ function updateManager() {
       ])
 
       .then(({ employee_id, manager }) => {
+        console.log("Manager: " + manager);
         connection.query(
           `UPDATE employee SET manager =  ${manager} WHERE emp_id = ${employee_id}`,
           function (err, data) {
             if (err) throw err;
-
             getTask();
           }
         );
       });
   });
+}*/
+
+function updateManager() {
+    connection.query(`SELECT * FROM employee`, function (err, data) {
+        if (err) throw err;
+    
+        let employeesFNames = [];
+    
+        for (let i = 0; i < data.length; i++) {
+          var employeeObj = {
+            id: data[i].emp_id,
+            fName: data[i].fName,
+            lName: data[i].lName,
+            role_id: data[i].role_id,
+            manager: data[i].manager,
+          };
+          employeesFNames.push({ name: employeeObj.fName, value: employeeObj.id });
+        }
+    
+        inquirer
+          .prompt([
+            {
+              name: "employee_id",
+              type: "list",
+              message: "Who would you like to update?",
+              choices: employeesFNames,
+            },
+            {
+              name: "manager",
+              type: "list",
+              message: "Who's their new manager",
+              choices: ["none"].concat(employeesFNames),
+            },
+          ])
+    
+          .then(({ employee_id, manager }) => {
+            console.log("Manager: " + manager);
+            connection.query(
+              `UPDATE employee SET manager = ${manager} WHERE emp_id = ${employee_id}`,
+              function (err, data) {
+                if (err) throw err;
+                getTask();
+              }
+            );
+          });
+      });
 }
 
 function deleteItem() {
@@ -525,15 +577,17 @@ function removeEmp() {
       });
     }
 
-    inquirer.prompt([
-      {
-        name: "emp_name",
-        type: "list",
-        message: "Who would you like to remove?",
-        choices: employees,
-      },
-    ])
-    .then(function ({ emp_name }) {
+    inquirer
+      .prompt([
+        {
+          name: "emp_name",
+          type: "list",
+          message: "Who would you like to remove?",
+          choices: employees,
+        },
+      ])
+      .then(function ({ emp_name }) {
+          console.log(emp_name);
         connection.query(
           `DELETE FROM employee WHERE emp_id = ${emp_name}`,
           function (err, data) {
