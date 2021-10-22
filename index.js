@@ -268,7 +268,7 @@ function viewRoles(){
 }
 
 function viewEmp(){
-    connection.query('SELECT employee.emp_id, employee.fName, employee.lName, roles.title FROM employee INNER JOIN roles ON employee.role_id = roles.roles_id',
+    connection.query(`SELECT employee.emp_id, employee.fName, employee.lName, roles.salary, roles.title, department.dept_name FROM employee LEFT JOIN roles ON role_id = roles.roles_id LEFT JOIN department ON department.dept_id = roles.department_id`,
     function (err, data){
         if(err) throw err;
 
