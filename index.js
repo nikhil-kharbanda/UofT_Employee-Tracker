@@ -291,16 +291,16 @@ function update() {
       name: "updateType",
       type: "list",
       message: "What would you like to update?",
-      choices: ["role", "manager"],
+      choices: ["role"],
     })
     .then(function ({ updateType }) {
       switch (updateType) {
         case "role":
           updateRole();
           break;
-        case "manager":
+        /*case "manager":
           updateManager();
-          break;
+          break;*/
       }
     });
 }
@@ -411,7 +411,7 @@ function updateRole() {
   });
 }*/
 
-function updateManager() {
+/*function updateManager() {
     connection.query(`SELECT * FROM employee`, function (err, data) {
         if (err) throw err;
     
@@ -455,7 +455,7 @@ function updateManager() {
             );
           });
       });
-}
+}*/
 
 function deleteItem() {
   inquirer
@@ -567,13 +567,13 @@ function removeEmp() {
       var personObj = {
         first_name: data[i].fName,
         last_name: data[i].lName,
-        value: data[i].emp_id,
+        id: data[i].emp_id,
         roleID: data[i].role_id,
         manager: data[i].manager,
       };
       employees.push({
         name: personObj.first_name,
-        roleID: personObj.roleID,
+        value: personObj.id,
       });
     }
 
@@ -587,6 +587,7 @@ function removeEmp() {
         },
       ])
       .then(function ({ emp_name }) {
+        console.log(employees)
           console.log(emp_name);
         connection.query(
           `DELETE FROM employee WHERE emp_id = ${emp_name}`,
