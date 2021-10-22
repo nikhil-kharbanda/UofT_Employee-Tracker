@@ -6,7 +6,7 @@ USE company_records_db;
 
 CREATE TABLE department(
     dept_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(30) NOT NULL
+    dept_name VARCHAR(30) NOT NULL
 );
 
 CREATE TABLE roles(

@@ -87,7 +87,7 @@ function add_dept() {
     })
     .then(function ({ deptName }) {
       connection.query(
-        `INSERT INTO department (name) VALUES ('${deptName}')`,
+        `INSERT INTO department (dept_name) VALUES ('${deptName}')`,
         function (err, data) {
           if (err) throw err;
           console.log("Added department");
@@ -105,7 +105,7 @@ function add_role() {
 
     for (let i = 0; i < data.length; i++) {
       var deptsObj = {
-        name: data[i].name,
+        name: data[i].dept_name,
         value: data[i].dept_id,
       };
 
@@ -232,14 +232,49 @@ function view() {
       message: "What would you like to see?",
       choices: ["department", "roles", "employee"],
     })
-    .then(function ({ view }) {
-      connection.query(`SELECT * FROM ${view}`, function (err, data) {
-        if (err) throw err;
+
+    .then(function ({view}){
+        switch(view){
+            case "department":
+                viewDept();
+                break;
+            case "roles":
+                viewRoles();
+                break;
+            case "employee":
+                viewEmp();
+                break;
+        }
+    })
+}
+
+function viewDept(){
+    connection.query(`SELECT dept_id, dept_name FROM department`, function(err, data){
+        if(err) throw err;
 
         console.table(data);
         getTask();
-      });
     });
+}
+
+function viewRoles(){
+    connection.query('SELECT roles.roles_id, roles.title, department.dept_name, roles.salary FROM roles INNER JOIN department ON roles.department_id = department.dept_id', function (err, data){
+        if(err) throw err;
+
+        console.table(data);
+
+        getTask();
+    });    
+}
+
+function viewEmp(){
+    connection.query('SELECT employee.emp_id, employee.fName, employee.lName, roles.title FROM employee INNER JOIN roles ON employee.role_id = roles.roles_id',
+    function (err, data){
+        if(err) throw err;
+
+        console.table(data);
+        getTask();
+    })
 }
 
 function update() {
@@ -403,7 +438,7 @@ function removeDept() {
 
     for (let i = 0; i < data.length; i++) {
       var deptsObj = {
-        name: data[i].name,
+        name: data[i].dept_name,
         value: data[i].dept_id,
       };
 
