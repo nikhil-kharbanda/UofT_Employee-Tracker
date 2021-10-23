@@ -78,6 +78,7 @@ function add() {
     });
 }
 
+/* If user decided to add a new department */
 function add_dept() {
   inquirer
     .prompt({
@@ -97,6 +98,7 @@ function add_dept() {
     });
 }
 
+/* If user decided to add a new role to a department */
 function add_role() {
   let depts = [];
 
@@ -146,6 +148,7 @@ function add_role() {
   });
 }
 
+/* If user decided to add a new role to a role */
 function add_employee() {
   let employees = [];
   let roles = [];
@@ -224,13 +227,14 @@ function add_employee() {
   });
 }
 
+/* If user wants to see specific thing */
 function view() {
   inquirer
     .prompt({
       name: "view",
       type: "list",
       message: "What would you like to see?",
-      choices: ["department", "roles", "employee"],
+      choices: ["department", "roles", "employee", "back"],
     })
 
     .then(function ({ view }) {
@@ -244,10 +248,13 @@ function view() {
         case "employee":
           viewEmp();
           break;
+        case "back":
+          getTask();
       }
     });
 }
 
+/* When user selects they want to view all the departments */
 function viewDept() {
   connection.query(
     `SELECT dept_id, dept_name FROM department`,
@@ -260,6 +267,7 @@ function viewDept() {
   );
 }
 
+/* When user selects they want to view all the roles */
 function viewRoles() {
   connection.query(
     "SELECT roles.roles_id, roles.title, department.dept_name, roles.salary FROM roles INNER JOIN department ON roles.department_id = department.dept_id",
@@ -273,6 +281,7 @@ function viewRoles() {
   );
 }
 
+/* When user selects they want to view all the employees */
 function viewEmp() {
   connection.query(
     `SELECT employee.emp_id, employee.fName, employee.lName, roles.title, department.dept_name, roles.salary, employee.manager FROM employee LEFT JOIN roles ON role_id = roles.roles_id LEFT JOIN department ON department.dept_id = roles.department_id`,
@@ -285,26 +294,28 @@ function viewEmp() {
   );
 }
 
+/* When user selects want to update roles (tried to implment updating manager, but didnt get a chance to) */
 function update() {
   inquirer
     .prompt({
       name: "updateType",
       type: "list",
       message: "What would you like to update?",
-      choices: ["role"],
+      choices: ["role", "back"],
     })
     .then(function ({ updateType }) {
       switch (updateType) {
         case "role":
           updateRole();
           break;
-        /*case "manager":
-          updateManager();
-          break;*/
+        // case "manager":
+        //   updateManager();
+        //   break;
       }
     });
 }
 
+/* If user wants to update an employees role */
 function updateRole() {
   connection.query(`SELECT * FROM employee`, function (err, data) {
     if (err) throw err;
@@ -365,98 +376,53 @@ function updateRole() {
   });
 }
 
-/*function updateManager() {
-  connection.query(`SELECT * FROM employee`, function (err, data) {
-    if (err) throw err;
+// function updateManager() {
+//   connection.query(`SELECT * FROM employee`, function (err, data) {
+//     if (err) throw err;
 
-    let employeesFNames = [];
+//     let employeesFNames = ["none"];
 
-    for (let i = 0; i < data.length; i++) {
-      var employeeObj = {
-        id: data[i].emp_id,
-        fName: data[i].fName,
-        lName: data[i].lName,
-        role_id: data[i].role_id,
-        manager: data[i].manager,
-      };
-      employeesFNames.push({ name: employeeObj.fName, value: employeeObj.id });
-    }
+//     for (let i = 0; i < data.length; i++) {
+//       var employeeObj = {
+//         id: data[i].emp_id,
+//         fName: data[i].fName,
+//         lName: data[i].lName,
+//         role_id: data[i].role_id,
+//         manager: data[i].manager,
+//       };
+//       employeesFNames.push({ name: employeeObj.fName, value: employeeObj.id });
+//     }
 
-    inquirer
-      .prompt([
-        {
-          name: "employee_id",
-          type: "list",
-          message: "Who would you like to update?",
-          choices: employeesFNames,
-        },
-        {
-          name: "manager",
-          type: "list",
-          message: "Who's their new manager",
-          choices: ["none"].concat(employeesFNames),
-        },
-      ])
+//     inquirer
+//       .prompt([
+//         {
+//           name: "employee_id",
+//           type: "list",
+//           message: "Who would you like to update?",
+//           choices: employeesFNames,
+//         },
+//         {
+//           name: "manager",
+//           type: "list",
+//           message: "Who's their new manager",
+//           choices: employeesFNames,
+//         },
+//       ])
 
-      .then(({ employee_id, manager }) => {
-        console.log("Manager: " + manager);
-        connection.query(
-          `UPDATE employee SET manager =  ${manager} WHERE emp_id = ${employee_id}`,
-          function (err, data) {
-            if (err) throw err;
-            getTask();
-          }
-        );
-      });
-  });
-}*/
+//       .then(({ employee_id, manager }) => {
+//         console.log("Manager: " + manager);
+//         connection.query(
+//           `UPDATE employee SET manager =  ${manager} WHERE emp_id = ${employee_id}`,
+//           function (err, data) {
+//             if (err) throw err;
+//             getTask();
+//           }
+//         );
+//       });
+//   });
+// }
 
-/*function updateManager() {
-    connection.query(`SELECT * FROM employee`, function (err, data) {
-        if (err) throw err;
-    
-        let employeesFNames = [];
-    
-        for (let i = 0; i < data.length; i++) {
-          var employeeObj = {
-            id: data[i].emp_id,
-            fName: data[i].fName,
-            lName: data[i].lName,
-            role_id: data[i].role_id,
-            manager: data[i].manager,
-          };
-          employeesFNames.push({ name: employeeObj.fName, value: employeeObj.id });
-        }
-    
-        inquirer
-          .prompt([
-            {
-              name: "employee_id",
-              type: "list",
-              message: "Who would you like to update?",
-              choices: employeesFNames,
-            },
-            {
-              name: "manager",
-              type: "list",
-              message: "Who's their new manager",
-              choices: ["none"].concat(employeesFNames),
-            },
-          ])
-    
-          .then(({ employee_id, manager }) => {
-            console.log("Manager: " + manager);
-            connection.query(
-              `UPDATE employee SET manager = ${manager} WHERE emp_id = ${employee_id}`,
-              function (err, data) {
-                if (err) throw err;
-                getTask();
-              }
-            );
-          });
-      });
-}*/
-
+/* If user selects to delete an item */
 function deleteItem() {
   inquirer
     .prompt([
@@ -482,6 +448,7 @@ function deleteItem() {
     });
 }
 
+/* If user selected to remove a department, select which one to remove */
 function removeDept() {
   let depts = [];
 
@@ -519,6 +486,7 @@ function removeDept() {
   });
 }
 
+/* If user selected to remove a role, select which one to remove */
 function removeRole() {
   let roles = [];
 
@@ -557,6 +525,7 @@ function removeRole() {
   });
 }
 
+/* If user selected to remove an employee, select which one to remove */
 function removeEmp() {
   let employees = [];
 
@@ -587,8 +556,8 @@ function removeEmp() {
         },
       ])
       .then(function ({ emp_name }) {
-        console.log(employees)
-          console.log(emp_name);
+        console.log(employees);
+        console.log(emp_name);
         connection.query(
           `DELETE FROM employee WHERE emp_id = ${emp_name}`,
           function (err, data) {
@@ -601,6 +570,7 @@ function removeEmp() {
   });
 }
 
+/* Clear the database and exit */
 function exit() {
   deleteEmp();
   deleteRoles();
