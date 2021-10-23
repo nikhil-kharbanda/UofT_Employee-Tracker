@@ -16,7 +16,7 @@
   - [Video Link](#video)  
 
 ## Installation
-  Install using "npm i", and add the dependencies (console.table, inquirer, mysql2). Then run application using "node index.js"
+  Install using "npm i", and add the dependencies (console.table, inquirer, mysql2). Then run application using "node index.js". Run the database by copy and pasting the schema.sql code in a MySQL workbench. In the index file, add your password to link the database and application together
 
 ## Purpose
   This project was for us to learn how we can query data from a database while running an application, while also making sure we used the correct SQL syntax to get/change the appropriate data
