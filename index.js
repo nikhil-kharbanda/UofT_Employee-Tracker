@@ -7,7 +7,7 @@ const connection = mysql.createConnection({
   host: "localhost",
   port: 3306,
   user: "root",
-  password: "",  //add your database password here
+  password: "Password123",  //add your database password here
   database: "company_records_db",
 });
 
@@ -572,28 +572,6 @@ function removeEmp() {
 
 /* Clear the database and exit */
 function exit() {
-  deleteEmp();
-  deleteRoles();
-  deleteDept();
+  return;
 }
 
-function deleteDept() {
-  connection.query(`DELETE FROM department`, function (err, data) {
-    if (err) throw err;
-    console.log("Cleared dept table");
-  });
-}
-
-function deleteRoles() {
-  connection.query(`DELETE FROM roles`, function (err, data) {
-    if (err) throw err;
-    console.log("Cleared roles table");
-  });
-}
-
-function deleteEmp() {
-  connection.query(`DELETE FROM employee`, function (err, data) {
-    if (err) throw err;
-    console.log("Cleared roles table");
-  });
-}
